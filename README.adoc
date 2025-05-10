@@ -2,15 +2,25 @@
 :toclevels: 5
 :figure-caption!:
 
+:dry_schema_link: link:https://dry-rb.org/gems/dry-schema[Dry Schema]
+:object_inspection_link: link:https://alchemists.io/articles/ruby_object_inspection[Ruby Object Inspection]
+
 = Inspectable
+
+A customizable object inspector which enhances {object_inspection_link} behavior beyond what is provided by default. You can always implement your own `#inspect` method but this becomes tedious when you need to exclude or transform the same instance variables across multiple objects.
 
 toc::[]
 
 == Features
 
+- Allows you to customize and configure `Object#inspect` with minimal effort.
+- Allows you to exclude instance variables that are too verbose or undesired.
+- Allows you to register reusable transformers for more advanced behavior.
+
 == Requirements
 
 . link:https://www.ruby-lang.org[Ruby].
+. A good understanding of default {object_inspection_link} behavior.
 
 == Setup
 
@@ -45,6 +55,141 @@ require "inspectable"
 ----
 
 == Usage
+
+By default, `Object#inspect` is designed to include all instance variables so this gem is designed to exclude what you don't need. Otherwise, you don't need this gem at all. Take the following, for example:
+
+[source,ruby]
+----
+class Demo
+  include Inspectable[:token]
+
+  def initialize token: "secret", uri: "https://demo.io"
+    @token = token
+    @uri = uri
+  end
+end
+
+Demo.new.inspect
+#<Demo:0x00000000000005d0 @uri="https://demo.io">
+----
+
+Notice, when inspecting the instance of `Demo`, the `token` instance variable was excluded. This is important when you want to hide sensitive information, information that is too verbose, or you don't need at all.
+
+You can also use the built-in transformers to transform sensitive information as well. Example:
+
+[source,ruby]
+----
+class Demo
+  include Inspectable[token: :redact]
+
+  def initialize token: "secret", uri: "https://demo.io"
+    @token = token
+    @uri = uri
+  end
+end
+
+Demo.new.inspect
+"#<Demo:0x0000000000000ea0 @token=\"[REDACTED]\", @uri=\"https://demo.io\">"
+----
+
+The above is nearly identical to the first example except we've used the built-in `:redact` transformer which replaced `"secret"` with `"[REDACTED]"`. This is why this transformer is provided for you because leaking sensitive information is a fairly common occurrence that this gem has made this simple for you to manage. To learn more, see the xref:_transformers[Transformers] section below.
+
+=== Registry
+
+At the moment, this gem's registry only allows the registration of custom transformers. Example:
+
+[source,ruby]
+----
+Inspectable.add_transformer(:upcase, -> value { value.upcase if value })
+           .add_transformer "cleaner", -> value { value.sub(/\h{10}/, "") if value }
+----
+
+Notice you can register transformers using strings or symbols. The latter is preferred because all transformers are identified by symbol when referenced. The value must be a lambda where the value is the value of your instance variable which will be transformed at time of object inspection.
+
+Here's an example using the above registered transformers:
+
+[source,ruby]
+----
+class Demo
+  include Inspectable[name: :suffix, label: :upcase]
+
+  def initialize name: "demo-ab12ef", label: "Demo"
+    @name = name
+    @label = label
+  end
+end
+
+Demo.new.inspect
+"#<Demo:0x00000000000012f0 @name=\"demo\", @label=\"DEMO\">"
+----
+
+=== Transformers
+
+This gem includes a few basic transformers that can help you hide sensitive information or reduce verbosity. To view them, use:
+
+[source,ruby]
+----
+Inspectable.transformers
+# {
+#   class: #<Proc:0x000000010e09dc10 inspectable/transformers/classifier.rb:6 (lambda)>,
+#   redact: #<Proc:0x000000010e09cf40 inspectable/transformers/redactor.rb:6 (lambda)>
+# }
+----
+
+Continue reading to learn how each of these work and how you can provide your own transformers.
+
+==== Classifier
+
+This is a simple transformer that always asks for the class of the instance variable's value.
+
+This transformer is most helpful for objects, like {dry_schema_link}, that are extremely verbose. With this transformer, you can see the type of schema without all of the additional details. This transformer is also handy when you only want type information in general.
+
+To use, supply the instance variable you want to transform as the key and the transformer's key (symbol) as the value. Example:
+
+[source,ruby]
+----
+include Inspectable[demo: :class]
+----
+
+==== Redactor
+
+This transformer's sole purpose is to hide sensitive information. This is most helpful for obscuring credentials, passwords, and secrets in general. When your instance variable's value is not `nil`, you'll see `"[REDACTED]"` as the value. Otherwise, if your instance variable's value is `nil`, you'll see `nil` instead.
+
+To use, supply the instance variable you want to transform as the key and the transformer's key (symbol) as the value. Example:
+
+[source,ruby]
+----
+include Inspectable[demo: :redact]
+----
+
+==== Overrides
+
+Should you not like default transformer behavior, you can override an existing transformer with your own. For example, maybe you'd like the `Redactor` transform to use `"[FILTERED]"` instead of `"[REDACTED]"`. Here's how you do that:
+
+[source,ruby]
+----
+Inspectable.add_transformer :redact, -> value { "[FILTERED]" if value }
+----
+
+The above will override default behavior with your own functionality.
+
+==== Custom
+
+You can add as many transformers as you like by using the `.add_transformer` method. Several examples have been presented already but here are the guidelines for customization:
+
+* Use only a string or symbol for the first argument (a symbol is preferred). This allows you to quickly identify and use your transformer when applying custom inspection behavior to your objects.
+* Use a lambda for the second argument. The lambda must accept a value as the first positional parameter. How you transform the value is up to you.
+
+Let's say you don't like hex digests showing up when inspecting object, you could register a custom transformer for this:
+
+[source,ruby]
+----
+Inspectable.add_transformer :dehexer, -> value { value.sub(/\h+/, "") if value }
+----
+
+The above would strip hexes from the output. Notice the guard to check if the `value` exists before performing the transformation. This is good to have when your value might be `nil` so you don't have exceptions.
+
+ℹ️ Please note that the value of all transformers will always be sent the `#inspect` message as found with default {object_inspection_link} behavior. This means you don't have to worry about doing this yourself when building custom transformers.
 
 == Development
 
