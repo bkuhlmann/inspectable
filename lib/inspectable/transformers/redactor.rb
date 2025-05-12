@@ -3,6 +3,6 @@
 module Inspectable
   module Transformers
     # Redacts sensitive information.
-    Redactor = -> value { "[REDACTED]" if value }
+    Redactor = -> value { "[REDACTED]".inspect if value }
   end
 end

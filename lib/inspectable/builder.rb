@@ -42,7 +42,7 @@ module Inspectable
         value = instance.instance_variable_get variable
         transform = transformers[variable].call(value) if transformers.key? variable
 
-        attributes[variable] = (transform || value).inspect
+        attributes[variable] = (transform || value.inspect)
       end
     end
 

@@ -7,7 +7,7 @@ RSpec.describe Inspectable::Transformers::Redactor do
 
   describe "#call" do
     it "answers redacted value" do
-      expect(transformer.call("test")).to eq("[REDACTED]")
+      expect(transformer.call("test")).to eq(%("[REDACTED]"))
     end
 
     it "answers nil when nil" do

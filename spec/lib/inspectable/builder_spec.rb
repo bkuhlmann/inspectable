@@ -42,7 +42,7 @@ RSpec.describe Inspectable::Builder do
 
       it "answers transformed values" do
         expect(implementation.new.inspect).to match(
-          /#<#<Class:.+{18}\s@token="\[REDACTED\]", @contract="Object">/
+          /#<#<Class:.+{18}\s@token="\[REDACTED\]", @contract=Object>/
         )
       end
     end
@@ -51,8 +51,8 @@ RSpec.describe Inspectable::Builder do
       let :implementation do
         Class.new do
           include Inspectable::Builder.new(
-            name: -> value { "t-#{value}" },
-            label: -> value { value.upcase }
+            name: -> value { "t-#{value}".inspect },
+            label: -> value { value.upcase.inspect }
           )
 
           def initialize name: "test", label: "Test"
