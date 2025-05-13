@@ -3,9 +3,16 @@ exclude_paths:
   - vendor
 
 detectors:
+  ControlParameter:
+    exclude:
+      - Inspectable::Builder#included
   LongParameterList:
     enabled: false
   FeatureEnvy:
     exclude:
       - Inspectable::Sanitizers::Dater#exclude_and_transform
       - Inspectable::Sanitizers::Structer#exclude_and_transform
+  TooManyStatements:
+    exclude:
+      - Inspectable::Builder#initialize
+      - Inspectable::Builder#define_inspect

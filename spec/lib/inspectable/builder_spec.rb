@@ -8,6 +8,17 @@ RSpec.describe Inspectable::Builder do
       expectation = proc { described_class.new }
       expect(&expectation).to raise_error(ArgumentError, "Excludes or transformers are required.")
     end
+
+    it "is frozen" do
+      expect(described_class.new(:test).frozen?).to be(true)
+    end
+  end
+
+  describe "#included" do
+    it "fails when included in a module" do
+      expectation = proc { Module.new.include described_class.new(:test) }
+      expect(&expectation).to raise_error(TypeError, "Use Class, Struct, or Data.")
+    end
   end
 
   describe "#inspect" do
@@ -66,6 +77,51 @@ RSpec.describe Inspectable::Builder do
         expect(implementation.new.inspect).to match(
           /#<#<Class:.+{18}\s@name="t-test", @label="TEST">/
         )
+      end
+    end
+
+    context "with struct" do
+      let :implementation do
+        Struct.new :name, :label do
+          include Inspectable::Builder.new(:name, label: :redact)
+        end
+      end
+
+      it "answers transformed values" do
+        expect(implementation[name: "test", label: "Test"].inspect).to eq(
+          %(#<struct label="[REDACTED]">)
+        )
+      end
+    end
+
+    context "with data" do
+      # rubocop:todo RSpec/DescribedClass
+      let :implementation do
+        Data.define :name, :label do
+          include Inspectable::Builder.new(:name, label: :redact)
+        end
+      end
+      # rubocop:enable RSpec/DescribedClass
+
+      it "answers transformed values" do
+        expect(implementation[name: "test", label: "Test"].inspect).to eq(
+          %(#<data label="[REDACTED]">)
+        )
+      end
+    end
+
+    context "with unknown type" do
+      let :implementation do
+        Struct.new :name do
+          def class = Comparable
+
+          include Inspectable::Builder.new(:name)
+        end
+      end
+
+      it "fails with type error" do
+        expectation = proc { implementation[name: "test"].inspect }
+        expect(&expectation).to raise_error(TypeError, "Unknown type. Use Class, Struct, or Data.")
       end
     end
 
