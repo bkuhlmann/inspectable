@@ -4,6 +4,7 @@ require "inspectable/builder"
 require "inspectable/registry"
 require "inspectable/sanitizers/classer"
 require "inspectable/sanitizers/dater"
+require "inspectable/sanitizers/structer"
 require "inspectable/transformers/classifier"
 require "inspectable/transformers/redactor"
 

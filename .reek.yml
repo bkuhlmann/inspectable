@@ -8,3 +8,4 @@ detectors:
   FeatureEnvy:
     exclude:
       - Inspectable::Sanitizers::Dater#exclude_and_transform
+      - Inspectable::Sanitizers::Structer#exclude_and_transform
