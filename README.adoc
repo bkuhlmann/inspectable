@@ -7,7 +7,7 @@
 
 = Inspectable
 
-A customizable object inspector which enhances {object_inspection_link} behavior beyond what is provided by default. You can always implement your own `#inspect` method but this becomes tedious when you need to exclude or transform the same instance variables across multiple objects.
+Inspectable is a customizable object inspector which enhances {object_inspection_link} behavior beyond what is provided by default. You can always implement your own `#inspect` method but this becomes tedious when you need to exclude or transform the same instance variables across multiple objects.
 
 toc::[]
 
@@ -56,7 +56,7 @@ require "inspectable"
 
 == Usage
 
-By default, `Object#inspect` is designed to include all instance variables so this gem is designed to exclude what you don't need. Otherwise, you don't need this gem at all. Take the following, for example:
+By default, `Object#inspect` includes all instance variables so this gem is designed to exclude what you don't need or transform variables before being inspected. Otherwise, you don't need this gem at all. Take the following, for example:
 
 [source,ruby]
 ----
@@ -136,7 +136,7 @@ Inspectable.transformers
 # }
 ----
 
-Continue reading to learn how each of these work and how you can provide your own transformers.
+Each is explained below.
 
 ==== Classifier
 
@@ -153,7 +153,7 @@ include Inspectable[demo: :class]
 
 ==== Redactor
 
-This transformer's sole purpose is to hide sensitive information. This is most helpful for obscuring credentials, passwords, and secrets in general. When your instance variable's value is not `nil`, you'll see `"[REDACTED]"` as the value. Otherwise, if your instance variable's value is `nil`, you'll see `nil` instead.
+This transformer's sole purpose is to hide sensitive information and is most helpful for obscuring credentials, passwords, and secrets in general. When your instance variable's value is not `nil`, you'll see `"[REDACTED]"` as the value. Otherwise, if your instance variable's value is `nil`, you'll see `nil` instead.
 
 To use, supply the instance variable you want to transform as the key and the transformer's key (symbol) as the value. Example:
 
@@ -178,18 +178,18 @@ The above will override default behavior with your own functionality.
 You can add as many transformers as you like by using the `.add_transformer` method. Several examples have been presented already but here are the guidelines for customization:
 
 * Use only a string or symbol for the first argument (a symbol is preferred). This allows you to quickly identify and use your transformer when applying custom inspection behavior to your objects.
-* Use a lambda for the second argument. The lambda must accept a value as the first positional parameter. How you transform the value is up to you.
+* Use a lambda for the second argument. The lambda must accept a value as the first positional parameter. How you transform the value is up to you but you'll want to adhere to default {object_inspection_link} behavior.
 
-Let's say you don't like hex digests showing up when inspecting object, you could register a custom transformer for this:
+Let's say you need to remove hex values from showing up when inspecting a variable value, you could register a custom transformer for this:
 
 [source,ruby]
 ----
-Inspectable.add_transformer :dehexer, -> value { value.sub(/\h+/, "") if value }
+Inspectable.add_transformer :dehexer, -> value { value.sub(/\h+/, "").inspect if value }
 ----
 
 The above would strip hexes from the output. Notice the guard to check if the `value` exists before performing the transformation. This is good to have when your value might be `nil` so you don't have exceptions.
 
-ℹ️ Please note that the value of all transformers will always be sent the `#inspect` message as found with default {object_inspection_link} behavior. This means you don't have to worry about doing this yourself when building custom transformers.
+ℹ️ In most cases, you _must_ send the `#inspect` message to the transformed value. In situations, where you are dealing with a constant, you'll want to avoid sending the `#inspect` message because constants shouldn't be quoted. All of this is important when adhering to default {object_inspection_link} behavior.
 
 == Development
 
