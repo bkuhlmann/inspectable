@@ -9,5 +9,7 @@ require "inspectable/transformers/redactor"
 module Inspectable
   extend Registry
 
+  INSPECTOR = -> value { value.inspect }
+
   def self.[](*, **) = Builder.new(*, **)
 end
