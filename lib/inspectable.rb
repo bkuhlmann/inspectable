@@ -14,5 +14,12 @@ module Inspectable
 
   INSPECTOR = -> value { value.inspect }
 
+  CONTAINER = {
+    registry: self,
+    class: Sanitizers::Classer.new,
+    data: Sanitizers::Dater.new,
+    struct: Sanitizers::Structer.new
+  }.freeze
+
   def self.[](*, **) = Builder.new(*, **)
 end
