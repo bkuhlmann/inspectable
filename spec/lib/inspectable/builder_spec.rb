@@ -95,13 +95,10 @@ RSpec.describe Inspectable::Builder do
     end
 
     context "with data" do
-      # rubocop:todo RSpec/DescribedClass
       let :implementation do
-        Data.define :name, :label do
-          include Inspectable::Builder.new(:name, label: :redact)
-        end
+        implementation = described_class.new :name, label: :redact
+        Data.define(:name, :label) { include implementation }
       end
-      # rubocop:enable RSpec/DescribedClass
 
       it "answers transformed values" do
         expect(implementation[name: "test", label: "Test"].inspect).to eq(
