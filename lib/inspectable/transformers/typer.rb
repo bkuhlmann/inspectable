@@ -2,7 +2,7 @@
 
 module Inspectable
   module Transformers
-    # Answers value's class.
-    Classifier = -> value { value.class.name }
+    # Answers object's type.
+    Typer = -> value { value.class.name }
   end
 end

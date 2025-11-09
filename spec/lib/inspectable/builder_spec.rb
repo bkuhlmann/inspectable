@@ -65,7 +65,7 @@ RSpec.describe Inspectable::Builder do
     context "with default transformers" do
       let :implementation do
         Class.new do
-          include Inspectable::Builder.new(token: :redact, contract: :class)
+          include Inspectable::Builder.new(token: :redact, contract: :type)
 
           def initialize token: "secret", contract: Object.new
             @token = token
