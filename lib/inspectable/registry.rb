@@ -4,8 +4,8 @@ module Inspectable
   # Provides global regsitry for further customization.
   module Registry
     def self.extended descendant
-      descendant.add_transformer(:class, Inspectable::Transformers::Classifier)
-                .add_transformer :redact, Inspectable::Transformers::Redactor
+      descendant.add_transformer(:redact, Inspectable::Transformers::Redactor)
+                .add_transformer(:type, Inspectable::Transformers::Typer)
     end
 
     def add_transformer key, function

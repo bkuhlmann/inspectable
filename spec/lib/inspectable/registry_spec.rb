@@ -7,8 +7,8 @@ RSpec.describe Inspectable::Registry do
 
   let :transformers do
     {
-      class: Inspectable::Transformers::Classifier,
-      redact: Inspectable::Transformers::Redactor
+      redact: Inspectable::Transformers::Redactor,
+      type: Inspectable::Transformers::Typer
     }
   end
 
@@ -35,8 +35,8 @@ RSpec.describe Inspectable::Registry do
       registry.add_transformer :redact, function
 
       expect(registry.transformers).to eq(
-        class: Inspectable::Transformers::Classifier,
-        redact: function
+        redact: function,
+        type: Inspectable::Transformers::Typer
       )
     end
 
