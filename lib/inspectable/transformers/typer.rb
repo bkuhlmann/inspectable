@@ -3,6 +3,10 @@
 module Inspectable
   module Transformers
     # Answers object's type.
-    Typer = -> value { value.class.name }
+    module Typer
+      module_function
+
+      def call(value) = value.class.name
+    end
   end
 end

@@ -6,6 +6,7 @@ detectors:
   ControlParameter:
     exclude:
       - Inspectable::Builder#included
+      - Inspectable::Transformers::Redactor#call
   LongParameterList:
     enabled: false
   FeatureEnvy:

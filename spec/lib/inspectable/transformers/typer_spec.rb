@@ -19,7 +19,7 @@ RSpec.describe Inspectable::Transformers::Typer do
     end
 
     it "answers transformer's class name" do
-      expect(transformer.call(transformer)).to eq("Proc")
+      expect(transformer.call(transformer)).to eq("Module")
     end
   end
 end
