@@ -4,6 +4,7 @@
 
 :dry_schema_link: link:https://dry-rb.org/gems/dry-schema[Dry Schema]
 :object_inspection_link: link:https://alchemists.io/articles/ruby_object_inspection[Ruby Object Inspection]
+:rspec_link: link:https://rspec.info[RSpec]
 
 = Inspectable
 
@@ -13,9 +14,9 @@ toc::[]
 
 == Features
 
-- Allows you to customize and configure `Object#inspect` with minimal effort.
-- Allows you to exclude instance variables that are too verbose or undesired.
-- Allows you to register reusable transformers for more advanced behavior.
+* Allows you to customize and configure `Object#inspect` with minimal effort.
+* Allows you to exclude instance variables that are too verbose or undesired.
+* Allows you to register reusable transformers for more advanced behavior.
 
 == Requirements
 
@@ -125,31 +126,19 @@ Demo.new.inspect
 
 === Transformers
 
-This gem includes a few basic transformers that can help you hide sensitive information or reduce verbosity. To view them, use:
+This gem includes a few built-in transformers that can help you hide sensitive information or reduce verbosity. To view them, use:
 
 [source,ruby]
 ----
 Inspectable.transformers
+
 # {
-#   class: #<Proc:0x000000010e09dc10 inspectable/transformers/classifier.rb:6 (lambda)>,
-#   redact: #<Proc:0x000000010e09cf40 inspectable/transformers/redactor.rb:6 (lambda)>
+#   redact: Inspectable::Transformers::Redactor,
+#     type: Inspectable::Transformers::Typer
 # }
 ----
 
 Each is explained below.
-
-==== Classifier
-
-This is a simple transformer that always asks for the class of the instance variable's value.
-
-This transformer is most helpful for objects, like {dry_schema_link}, that are extremely verbose. With this transformer, you can see the type of schema without all of the additional details. This transformer is also handy when you only want type information in general.
-
-To use, supply the instance variable you want to transform as the key and the transformer's key (symbol) as the value. Example:
-
-[source,ruby]
-----
-include Inspectable[demo: :class]
-----
 
 ==== Redactor
 
@@ -162,9 +151,22 @@ To use, supply the instance variable you want to transform as the key and the tr
 include Inspectable[demo: :redact]
 ----
 
+==== Typer
+
+This transformer always computes the instance variable's type.
+
+This transformer is most helpful for objects, like {dry_schema_link}, that are extremely verbose. With this transformer, you can see the type of schema without all of the additional details. This transformer is also handy when you only want type information in general.
+
+To use, supply the instance variable you want to transform as the key and the transformer's key (symbol) as the value. Example:
+
+[source,ruby]
+----
+include Inspectable[demo: :type]
+----
+
 ==== Overrides
 
-Should you not like default transformer behavior, you can override an existing transformer with your own. For example, maybe you'd like the `Redactor` transform to use `"[FILTERED]"` instead of `"[REDACTED]"`. Here's how you do that:
+Should you not like default transformer behavior, you can override an existing transformer with your own. For example, maybe you'd like the `Redactor` transformer to use `"[FILTERED]"` instead of `"[REDACTED]"`. Here's how you do that:
 
 [source,ruby]
 ----
@@ -175,7 +177,7 @@ The above will override default behavior with your own functionality.
 
 ==== Custom
 
-You can add as many transformers as you like by using the `.add_transformer` method. Several examples have been presented already but here are the guidelines for customization:
+You can add as many transformers as you like by using the `.add_transformer` method. Here are the guidelines for customization:
 
 * Use only a string or symbol for the first argument (a symbol is preferred). This allows you to quickly identify and use your transformer when applying custom inspection behavior to your objects.
 * Use a lambda for the second argument. The lambda must accept a value as the first positional parameter. How you transform the value is up to you but you'll want to adhere to default {object_inspection_link} behavior.
@@ -190,6 +192,96 @@ Inspectable.add_transformer :dehexer, -> value { value.sub(/\h+/, "").inspect if
 The above would strip hexes from the output. Notice the guard to check if the `value` exists before performing the transformation. This is good to have when your value might be `nil` so you don't have exceptions.
 
 ℹ️ In most cases, you _must_ send the `#inspect` message to the transformed value. In situations, where you are dealing with a constant, you'll want to avoid sending the `#inspect` message because constants shouldn't be quoted. All of this is important when adhering to default {object_inspection_link} behavior.
+
+=== Native
+
+As of Ruby 4.0.0, limited native support is provided via the _private_ `instance_variables_to_inspect` instance method. This method is not compatible with this gem because this gem makes `instance_variables_to_inspect` redundant and will fail with a `NoMethodError` exception. Example:
+
+[source,ruby]
+----
+Class.new do
+  include Inspectable(:name)
+
+  def initialize name = "test"
+    @name = name
+  end
+
+  private
+
+  def instance_variables_to_inspect = [:@name]
+end
+
+# undefined method 'Inspectable' for class (NoMethodError)
+----
+
+To resolve the above exception, remove `instance_variables_to_inspect` and let this gem handle everything for you.
+
+=== RSpec
+
+To aid in your testing, you can use the `match_inspection` RSpec matcher by requiring it in your spec helper:
+
+[source,ruby]
+----
+# spec_helper.rb
+
+require "inspectable/rspec/matchers/match_inspection"
+----
+
+Once required, you can use the matcher by supplying the expected attributes as follows:
+
+[source,ruby]
+----
+RSpec.describe Demo do
+  subject(:demo) { described_class.new }
+
+  describe "#inspect" do
+    it "has inspected attributes" do
+      expect(demo.inspect).to match_inspection(label: "Demo", name: :demo)
+    end
+  end
+end
+----
+
+You can also customize the matcher by providing a `by` hash _before_ any expected attributes consisting of the following attributes:
+
+* `prefix`: The prefix of your attribute names. Default: `"@"`.
+* `delimiter`: The delimiter between each attribute name and value. Default: `"="`.
+* `separator`: The separator between each attribute. Default: `", "`.
+
+For example, the following is an explicit demonstration of what the matcher implicitly provides for you by default:
+
+[source,ruby]
+----
+RSpec.describe Demo do
+  subject(:demo) { described_class.new }
+
+  describe "#inspect" do
+    it "has inspected attributes" do
+      expect(demo.inspect).to match_inspection(
+        by: {prefix: "@", delimiter: "=", separator: ", "},
+        label: "Demo",
+        name: :demo
+      )
+    end
+  end
+end
+----
+
+In situations where the spec fails, you’ll get a formatted error to help you quickly resolve and fix the issue:
+
+----
+expected (using prefix: "@", delimiter: "=", and separator: ", "):
+
+"#<Demo:0x00000000000014d0
+@label="Demo",
+@name=:demo
+@email="demo@demo.io"
+
+to match:
+
+@label="Demo",
+@name=:demo
+----
 
 == Development
 
