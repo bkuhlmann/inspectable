@@ -2,9 +2,9 @@
 
 require "inspectable/builder"
 require "inspectable/registry"
-require "inspectable/sanitizers/classer"
-require "inspectable/sanitizers/dater"
-require "inspectable/sanitizers/structer"
+require "inspectable/sanitizers/data"
+require "inspectable/sanitizers/struct"
+require "inspectable/sanitizers/type"
 require "inspectable/transformers/redactor"
 require "inspectable/transformers/typer"
 
@@ -16,9 +16,9 @@ module Inspectable
 
   CONTAINER = {
     registry: self,
-    class: Sanitizers::Classer.new,
-    data: Sanitizers::Dater.new,
-    struct: Sanitizers::Structer.new
+    class: Sanitizers::Type.new,
+    data: Sanitizers::Data.new,
+    struct: Sanitizers::Struct.new
   }.freeze
 
   def self.[](*, **) = Builder.new(*, **)

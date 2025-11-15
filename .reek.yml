@@ -10,8 +10,8 @@ detectors:
     enabled: false
   FeatureEnvy:
     exclude:
-      - Inspectable::Sanitizers::Dater#exclude_and_transform
-      - Inspectable::Sanitizers::Structer#exclude_and_transform
+      - Inspectable::Sanitizers::Data#exclude_and_transform
+      - Inspectable::Sanitizers::Struct#exclude_and_transform
   TooManyStatements:
     exclude:
       - Inspectable::Builder#initialize

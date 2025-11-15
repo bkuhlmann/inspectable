@@ -2,8 +2,8 @@
 
 module Inspectable
   module Sanitizers
-    # Excludes and transforms class instance variables.
-    class Classer
+    # Excludes and transforms object types.
+    class Type
       def initialize pattern: "#<%<class>s:%<id>#018x %<body>s>", inspector: INSPECTOR
         @pattern = pattern
         @inspector = inspector

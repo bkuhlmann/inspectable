@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Inspectable::Sanitizers::Classer do
+RSpec.describe Inspectable::Sanitizers::Type do
   subject(:sanitizer) { described_class.new }
 
   describe "#initialize" do
