@@ -23,7 +23,11 @@ module Inspectable
       def exclude_and_transform instance, excludes, transformers
         (instance.members - excludes).reduce(+"") do |body, member|
           value = instance.public_send member
-          body << "#{member}=#{transformers.fetch(member, inspector).call value}, "
+          transformer = transformers.fetch member, inspector
+
+          fail ArgumentError, "Invalid transformer registered for: #{member}." unless transformer
+
+          body << "#{member}=#{transformer.call value}, "
         end
       end
     end

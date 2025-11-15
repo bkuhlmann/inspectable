@@ -22,7 +22,11 @@ module Inspectable
 
       def exclude_and_transform instance, excludes, transformers
         (instance.members - excludes).reduce(+"") do |body, member|
-          body << "#{member}=#{transformers.fetch(member, inspector).call instance[member]}, "
+          transformer = transformers.fetch member, inspector
+
+          fail ArgumentError, "Invalid transformer registered for: #{member}." unless transformer
+
+          body << "#{member}=#{transformer.call instance[member]}, "
         end
       end
     end

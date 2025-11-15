@@ -26,9 +26,11 @@ module Inspectable
       def exclude_and_transform instance, variables, transformers
         variables.reduce(+"") do |body, variable|
           key = variable.to_s.delete_prefix("@").to_sym
-          value = instance.instance_variable_get variable
+          transformer = transformers.fetch key, inspector
 
-          body << "#{variable}=#{transformers.fetch(key, inspector).call value}, "
+          fail ArgumentError, "Invalid transformer registered for: #{key}." unless transformer
+
+          body << "#{variable}=#{transformer.call instance.instance_variable_get(variable)}, "
         end
       end
     end
