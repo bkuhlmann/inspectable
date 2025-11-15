@@ -65,7 +65,7 @@ module Inspectable
 
     def render instance, type
       container.fetch(type) { fail TypeError, "Unknown type. Use Class, Struct, or Data." }
-               .then { |serializer| serializer.call(instance, *excludes, **transformers) }
+               .then { |sanitizer| sanitizer.call(instance, *excludes, **transformers) }
     end
   end
 end
