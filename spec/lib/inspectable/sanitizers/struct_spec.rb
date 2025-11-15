@@ -31,5 +31,14 @@ RSpec.describe Inspectable::Sanitizers::Struct do
 
       expect(string).to eq(%(#<struct TestStruct label="TEST">))
     end
+
+    it "fails when transformer is nil" do
+      expectation = proc { sanitizer.call instance, name: nil }
+
+      expect(&expectation).to raise_error(
+        ArgumentError,
+        "Invalid transformer registered for: name."
+      )
+    end
   end
 end
