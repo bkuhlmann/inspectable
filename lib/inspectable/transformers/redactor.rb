@@ -3,6 +3,10 @@
 module Inspectable
   module Transformers
     # Redacts sensitive information.
-    Redactor = -> value { "[REDACTED]".inspect if value }
+    module Redactor
+      module_function
+
+      def call(value) = ("[REDACTED]".inspect if value)
+    end
   end
 end
