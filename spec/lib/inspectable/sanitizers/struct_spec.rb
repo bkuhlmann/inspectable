@@ -3,7 +3,7 @@
 require "spec_helper"
 require SPEC_ROOT.join("support/fixtures/test_struct")
 
-RSpec.describe Inspectable::Sanitizers::Structer do
+RSpec.describe Inspectable::Sanitizers::Struct do
   subject(:sanitizer) { described_class.new }
 
   describe "#initialize" do

@@ -3,7 +3,7 @@
 require "spec_helper"
 require SPEC_ROOT.join("support/fixtures/test_data")
 
-RSpec.describe Inspectable::Sanitizers::Dater do
+RSpec.describe Inspectable::Sanitizers::Data do
   subject(:sanitizer) { described_class.new }
 
   describe "#initialize" do

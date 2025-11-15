@@ -2,9 +2,9 @@
 
 module Inspectable
   module Sanitizers
-    # Excludes and transforms struct members.
-    class Structer
-      def initialize pattern: "#<struct%<class>s %<body>s>", inspector: Inspectable::INSPECTOR
+    # Excludes and transforms data members.
+    class Data
+      def initialize pattern: "#<data%<class>s %<body>s>", inspector: INSPECTOR
         @pattern = pattern
         @inspector = inspector
         freeze
@@ -22,7 +22,8 @@ module Inspectable
 
       def exclude_and_transform instance, excludes, transformers
         (instance.members - excludes).reduce(+"") do |body, member|
-          body << "#{member}=#{transformers.fetch(member, inspector).call instance[member]}, "
+          value = instance.public_send member
+          body << "#{member}=#{transformers.fetch(member, inspector).call value}, "
         end
       end
     end
