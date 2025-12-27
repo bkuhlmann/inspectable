@@ -15,9 +15,32 @@ RSpec.describe Inspectable::Builder do
   end
 
   describe "#included" do
+    let :with_native_inspection do
+      proc do
+        Class.new do
+          include Inspectable::Builder.new(:name)
+
+          def initialize name = "test"
+            @name = name
+          end
+
+          private
+
+          def instance_variables_to_inspect = [:@name]
+        end
+      end
+    end
+
     it "fails when included in a module" do
       expectation = proc { Module.new.include described_class.new(:test) }
       expect(&expectation).to raise_error(TypeError, "Use Class, Struct, or Data.")
+    end
+
+    it "fails when defining instance variables to inspect" do
+      expect(&with_native_inspection).to raise_error(
+        NoMethodError,
+        "Defining method :instance_variables_to_inspect is disabled."
+      )
     end
   end
 
