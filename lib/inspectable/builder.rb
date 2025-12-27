@@ -15,6 +15,12 @@ module Inspectable
     end
 
     def included descendant
+      descendant.define_singleton_method :method_added do |name|
+        return super(name) unless name == :instance_variables_to_inspect
+
+        fail NoMethodError, "Defining method :instance_variables_to_inspect is disabled."
+      end
+
       case descendant
         when Class, Struct, Data then super
         else fail TypeError, "Use Class, Struct, or Data."
