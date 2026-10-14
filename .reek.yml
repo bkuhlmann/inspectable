@@ -17,3 +17,5 @@ detectors:
     exclude:
       - Inspectable::Builder#initialize
       - Inspectable::Builder#define_inspect
+  UnusedParameters:
+    enabled: false
